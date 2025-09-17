@@ -1,3 +1,5 @@
+import Parser from 'rss-parser'
+
 export interface RSSFeed {
   id: string
   name: string
@@ -76,38 +78,45 @@ export const RSS_FEEDS: RSSFeed[] = [
   }
 ]
 
+const parser = new Parser({
+  customFields: {
+    item: ['media:content', 'media:thumbnail', 'enclosure']
+  }
+})
+
 export async function fetchRSSFeed(feedUrl: string): Promise<any[]> {
   try {
-    // In a real app, you'd need a CORS proxy or backend service
-    // For now, we'll return mock data that simulates RSS content
-    const mockRSSData = [
-      {
-        title: 'Breaking: Major Political Development',
-        description: 'Latest updates on current political events affecting the nation.',
-        link: '#',
-        pubDate: new Date().toISOString(),
-        category: 'Politics'
-      },
-      {
-        title: 'Second Amendment Rights Under Review',
-        description: 'New legislation proposed that could impact gun ownership rights.',
-        link: '#',
-        pubDate: new Date(Date.now() - 3600000).toISOString(),
-        category: 'Gun Rights'
-      },
-      {
-        title: 'Economic Indicators Show Mixed Signals',
-        description: 'Latest economic data presents complex picture of recovery.',
-        link: '#',
-        pubDate: new Date(Date.now() - 7200000).toISOString(),
-        category: 'Economy'
-      }
-    ]
+    // Use CORS proxy for client-side RSS parsing
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`
+    const response = await fetch(proxyUrl)
+    const data = await response.json()
     
-    return mockRSSData
+    if (data.contents) {
+      const feed = await parser.parseString(data.contents)
+      return feed.items.slice(0, 5).map((item: any) => ({
+        title: item.title || 'No title',
+        description: item.contentSnippet || item.description || 'No description',
+        link: item.link || '#',
+        pubDate: item.pubDate ? new Date(item.pubDate) : new Date(),
+        category: item.categories?.[0] || 'General',
+        imageUrl: item.enclosure?.url || item['media:content']?.['$']?.url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=250&fit=crop'
+      }))
+    }
+    
+    return []
   } catch (error) {
     console.error('Error fetching RSS feed:', error)
-    return []
+    // Return fallback mock data if RSS fails
+    return [
+      {
+        title: 'RSS Feed Temporarily Unavailable',
+        description: 'This feed is currently being updated. Please check back later.',
+        link: '#',
+        pubDate: new Date(),
+        category: 'General',
+        imageUrl: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=250&fit=crop'
+      }
+    ]
   }
 }
 

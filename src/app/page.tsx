@@ -7,6 +7,7 @@ import FilterPanel from '@/components/FilterPanel'
 import PersonalizationPanel from '@/components/PersonalizationPanel'
 import { NewsArticle, NewsSource } from '@/types/news'
 import { analytics } from '@/lib/analytics'
+import { fetchAllFeeds } from '@/lib/rssService'
 
 export default function Home() {
   const [articles, setArticles] = useState<NewsArticle[]>([])
@@ -268,10 +269,41 @@ export default function Home() {
   useEffect(() => {
     const loadArticles = async () => {
       setIsLoading(true)
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setArticles(mockArticles)
-      setFilteredArticles(mockArticles)
+      try {
+        // Try to fetch real RSS feeds first
+        const rssArticles = await fetchAllFeeds()
+        
+        if (rssArticles.length > 0) {
+          // Convert RSS articles to NewsArticle format
+          const formattedArticles: NewsArticle[] = rssArticles.map((article, index) => ({
+            id: `rss-${index}-${Date.now()}`,
+            title: article.title,
+            description: article.description,
+            url: article.link,
+            imageUrl: article.imageUrl,
+            publishedAt: article.pubDate,
+            source: article.source,
+            category: article.category,
+            factChecked: false,
+            sentiment: 'neutral'
+          }))
+          
+          // Combine with some mock articles for variety
+          const allArticles = [...formattedArticles, ...mockArticles.slice(0, 3)]
+          setArticles(allArticles)
+          setFilteredArticles(allArticles)
+        } else {
+          // Fallback to mock data
+          setArticles(mockArticles)
+          setFilteredArticles(mockArticles)
+        }
+      } catch (error) {
+        console.error('Error loading articles:', error)
+        // Fallback to mock data
+        setArticles(mockArticles)
+        setFilteredArticles(mockArticles)
+      }
+      
       setLastUpdated(new Date())
       setIsLoading(false)
     }
@@ -292,14 +324,32 @@ export default function Home() {
   const refreshArticles = async () => {
     setIsRefreshing(true)
     try {
-      // In a real app, this would fetch from RSS feeds
-      // For now, we'll simulate with the same mock data
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      setArticles(mockArticles)
+      // Fetch real RSS feeds
+      const rssArticles = await fetchAllFeeds()
+      
+      // Convert RSS articles to NewsArticle format
+      const formattedArticles: NewsArticle[] = rssArticles.map((article, index) => ({
+        id: `rss-${index}-${Date.now()}`,
+        title: article.title,
+        description: article.description,
+        url: article.link,
+        imageUrl: article.imageUrl,
+        publishedAt: article.pubDate,
+        source: article.source,
+        category: article.category,
+        factChecked: false, // RSS articles aren't pre-fact-checked
+        sentiment: 'neutral' // Default sentiment
+      }))
+      
+      // Combine with mock articles for fallback
+      const allArticles = [...formattedArticles, ...mockArticles.slice(0, 5)]
+      setArticles(allArticles)
       setLastUpdated(new Date())
       analytics.pageView('refresh_articles')
     } catch (error) {
       console.error('Error refreshing articles:', error)
+      // Fallback to mock data if RSS fails
+      setArticles(mockArticles)
     } finally {
       setIsRefreshing(false)
     }
@@ -336,7 +386,7 @@ export default function Home() {
     <div className="min-h-screen bg-midnight text-soft-white">
       {isRefreshing && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-lavender text-charcoal text-center py-2 text-sm font-medium">
-          🔄 Refreshing news articles...
+          🔄 Fetching latest news from RSS feeds...
         </div>
       )}
       <Header 
