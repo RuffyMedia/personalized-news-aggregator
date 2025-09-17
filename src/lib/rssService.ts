@@ -86,24 +86,55 @@ const parser = new Parser({
 
 export async function fetchRSSFeed(feedUrl: string): Promise<any[]> {
   try {
-    // Use CORS proxy for client-side RSS parsing
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`
-    const response = await fetch(proxyUrl)
-    const data = await response.json()
+    console.log(`Fetching RSS feed: ${feedUrl}`)
     
-    if (data.contents) {
-      const feed = await parser.parseString(data.contents)
-      return feed.items.slice(0, 5).map((item: any) => ({
-        title: item.title || 'No title',
-        description: item.contentSnippet || item.description || 'No description',
-        link: item.link || '#',
-        pubDate: item.pubDate ? new Date(item.pubDate) : new Date(),
-        category: item.categories?.[0] || 'General',
-        imageUrl: item.enclosure?.url || item['media:content']?.['$']?.url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=250&fit=crop'
-      }))
+    // Try multiple CORS proxies
+    const proxies = [
+      `https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`,
+      `https://cors-anywhere.herokuapp.com/${feedUrl}`,
+      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(feedUrl)}`
+    ]
+    
+    let lastError = null
+    
+    for (const proxyUrl of proxies) {
+      try {
+        console.log(`Trying proxy: ${proxyUrl}`)
+        const response = await fetch(proxyUrl, {
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`)
+        }
+        
+        const data = await response.json()
+        const content = data.contents || data.content || data
+        
+        if (content) {
+          const feed = await parser.parseString(content)
+          console.log(`Successfully parsed feed with ${feed.items?.length || 0} items`)
+          
+          return (feed.items || []).slice(0, 5).map((item: any) => ({
+            title: item.title || 'No title',
+            description: item.contentSnippet || item.description || 'No description',
+            link: item.link || '#',
+            pubDate: item.pubDate ? new Date(item.pubDate) : new Date(),
+            category: item.categories?.[0] || 'General',
+            imageUrl: item.enclosure?.url || item['media:content']?.['$']?.url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=250&fit=crop'
+          }))
+        }
+      } catch (proxyError) {
+        console.error(`Proxy failed: ${proxyError}`)
+        lastError = proxyError
+        continue
+      }
     }
     
-    return []
+    throw lastError || new Error('All proxies failed')
+    
   } catch (error) {
     console.error('Error fetching RSS feed:', error)
     // Return fallback mock data if RSS fails
@@ -123,22 +154,37 @@ export async function fetchRSSFeed(feedUrl: string): Promise<any[]> {
 export async function fetchAllFeeds(): Promise<any[]> {
   const allArticles = []
   
-  for (const feed of RSS_FEEDS) {
+  // Try to fetch from a few reliable feeds first
+  const reliableFeeds = RSS_FEEDS.slice(0, 3) // Start with first 3 feeds
+  
+  for (const feed of reliableFeeds) {
     try {
+      console.log(`Fetching from ${feed.name}...`)
       const articles = await fetchRSSFeed(feed.url)
-      const articlesWithSource = articles.map(article => ({
-        ...article,
-        source: {
-          id: feed.id,
-          name: feed.name,
-          bias: feed.bias
-        }
-      }))
-      allArticles.push(...articlesWithSource)
+      
+      if (articles.length > 0) {
+        const articlesWithSource = articles.map(article => ({
+          ...article,
+          source: {
+            id: feed.id,
+            name: feed.name,
+            bias: feed.bias
+          }
+        }))
+        allArticles.push(...articlesWithSource)
+        console.log(`Successfully fetched ${articles.length} articles from ${feed.name}`)
+      }
     } catch (error) {
       console.error(`Error fetching ${feed.name}:`, error)
     }
   }
   
-  return allArticles
+  // If we got some articles, return them. Otherwise, return empty array to trigger fallback
+  if (allArticles.length > 0) {
+    console.log(`Total RSS articles fetched: ${allArticles.length}`)
+    return allArticles
+  } else {
+    console.log('No RSS articles fetched, will use mock data')
+    return []
+  }
 }

@@ -269,9 +269,13 @@ export default function Home() {
   useEffect(() => {
     const loadArticles = async () => {
       setIsLoading(true)
+      console.log('Loading articles...')
+      
       try {
         // Try to fetch real RSS feeds first
+        console.log('Attempting to fetch RSS feeds...')
         const rssArticles = await fetchAllFeeds()
+        console.log(`RSS articles fetched: ${rssArticles.length}`)
         
         if (rssArticles.length > 0) {
           // Convert RSS articles to NewsArticle format
@@ -290,16 +294,19 @@ export default function Home() {
           
           // Combine with some mock articles for variety
           const allArticles = [...formattedArticles, ...mockArticles.slice(0, 3)]
+          console.log(`Total articles loaded: ${allArticles.length}`)
           setArticles(allArticles)
           setFilteredArticles(allArticles)
         } else {
           // Fallback to mock data
+          console.log('No RSS articles, using mock data')
           setArticles(mockArticles)
           setFilteredArticles(mockArticles)
         }
       } catch (error) {
         console.error('Error loading articles:', error)
         // Fallback to mock data
+        console.log('Error occurred, using mock data fallback')
         setArticles(mockArticles)
         setFilteredArticles(mockArticles)
       }
