@@ -6,6 +6,7 @@ import NewsGrid from '@/components/NewsGrid'
 import FilterPanel from '@/components/FilterPanel'
 import PersonalizationPanel from '@/components/PersonalizationPanel'
 import { NewsArticle, NewsSource } from '@/types/news'
+import { analytics } from '@/lib/analytics'
 
 export default function Home() {
   const [articles, setArticles] = useState<NewsArticle[]>([])
@@ -275,12 +276,14 @@ export default function Home() {
 
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(article => article.category === selectedCategory)
+      analytics.categoryFilter(selectedCategory)
     }
 
     if (selectedSources.length > 0) {
       filtered = filtered.filter(article => 
         selectedSources.includes(article.source.id)
       )
+      analytics.sourceFilter(selectedSources)
     }
 
     if (searchQuery.trim() !== '') {
@@ -289,6 +292,7 @@ export default function Home() {
         article.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         article.source.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
+      analytics.search(searchQuery, filtered.length)
     }
 
     setFilteredArticles(filtered)

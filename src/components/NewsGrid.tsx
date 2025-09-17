@@ -5,6 +5,7 @@ import { ExternalLink, Clock, CheckCircle, TrendingUp, TrendingDown, Minus } fro
 import { NewsArticle } from '@/types/news'
 import BookmarkButton from './BookmarkButton'
 import ShareButton from './ShareButton'
+import { analytics } from '@/lib/analytics'
 
 interface NewsGridProps {
   articles: NewsArticle[]
@@ -127,6 +128,7 @@ export default function NewsGrid({ articles, isLoading }: NewsGridProps) {
                     href={article.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => analytics.articleClick(article.id, article.source.name, article.category)}
                     className="flex items-center space-x-1 text-lavender hover:text-mint transition-colors"
                   >
                     <span className="text-sm font-medium">Read more</span>
