@@ -125,6 +125,8 @@ export default function NewsGrid({ articles, isLoading }: NewsGridProps) {
                   
                   <a
                     href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center space-x-1 text-lavender hover:text-mint transition-colors"
                   >
                     <span className="text-sm font-medium">Read more</span>
