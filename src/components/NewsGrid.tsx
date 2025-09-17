@@ -1,7 +1,7 @@
 'use client'
 
 import { formatDistanceToNow } from 'date-fns'
-import { ExternalLink, Clock, CheckCircle, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { ExternalLink, Clock, CheckCircle, TrendingUp, TrendingDown, Minus, RefreshCw } from 'lucide-react'
 import { NewsArticle } from '@/types/news'
 import BookmarkButton from './BookmarkButton'
 import ShareButton from './ShareButton'
@@ -10,9 +10,12 @@ import { analytics } from '@/lib/analytics'
 interface NewsGridProps {
   articles: NewsArticle[]
   isLoading: boolean
+  lastUpdated?: Date
+  isRefreshing?: boolean
+  onRefresh?: () => void
 }
 
-export default function NewsGrid({ articles, isLoading }: NewsGridProps) {
+export default function NewsGrid({ articles, isLoading, lastUpdated, isRefreshing, onRefresh }: NewsGridProps) {
   const getSentimentIcon = (sentiment: string) => {
     switch (sentiment) {
       case 'positive': return <TrendingUp className="w-4 h-4 text-green-600" />
@@ -66,8 +69,22 @@ export default function NewsGrid({ articles, isLoading }: NewsGridProps) {
         <h2 className="text-xl font-semibold text-soft-white">
           Latest News ({articles.length} articles)
         </h2>
-        <div className="text-sm text-moonlight">
-          Updated {formatDistanceToNow(new Date())} ago
+        <div className="flex items-center space-x-4">
+          {lastUpdated && (
+            <div className="text-sm text-moonlight">
+              Updated {formatDistanceToNow(lastUpdated)} ago
+            </div>
+          )}
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="flex items-center space-x-1 px-3 py-1 text-sm text-lavender hover:text-mint transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+            </button>
+          )}
         </div>
       </div>
 

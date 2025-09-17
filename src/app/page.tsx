@@ -17,6 +17,8 @@ export default function Home() {
   const [biasBalance, setBiasBalance] = useState<'balanced' | 'left-leaning' | 'right-leaning' | 'custom'>('right-leaning')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Mock news data - in real app, this would come from news APIs
   const mockArticles: NewsArticle[] = [
@@ -36,7 +38,7 @@ export default function Home() {
       id: '2',
       title: 'New Economic Data Shows Mixed Signals',
       description: 'Latest economic indicators present a complex picture of recovery, with some sectors showing strong growth while others face challenges.',
-      url: '#',
+      url: 'https://apnews.com/article/economy-inflation-federal-reserve-interest-rates-2024-01-15',
       imageUrl: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=250&fit=crop',
       publishedAt: new Date('2024-01-15T09:15:00Z'),
       source: { id: 'ap', name: 'Associated Press', bias: 'center' },
@@ -48,7 +50,7 @@ export default function Home() {
       id: '3',
       title: 'Breakthrough in Medical Research Announced',
       description: 'Scientists have made significant progress in developing new treatments for previously incurable diseases.',
-      url: '#',
+      url: 'https://www.bbc.com/news/health/medical-research-breakthrough-2024',
       imageUrl: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop',
       publishedAt: new Date('2024-01-15T08:45:00Z'),
       source: { id: 'bbc', name: 'BBC News', bias: 'center' },
@@ -60,7 +62,7 @@ export default function Home() {
       id: '4',
       title: 'Technology Sector Faces New Regulations',
       description: 'Government announces new framework for tech industry oversight, balancing innovation with consumer protection.',
-      url: '#',
+      url: 'https://www.wsj.com/articles/technology-sector-faces-new-regulations-2024-01-15',
       imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=250&fit=crop',
       publishedAt: new Date('2024-01-15T07:20:00Z'),
       source: { id: 'wsj', name: 'Wall Street Journal', bias: 'center' },
@@ -72,7 +74,7 @@ export default function Home() {
       id: '5',
       title: 'International Trade Relations Show Improvement',
       description: 'Recent diplomatic efforts have led to positive developments in global trade partnerships.',
-      url: '#',
+      url: 'https://www.cnn.com/2024/01/15/politics/international-trade-relations-improvement/index.html',
       imageUrl: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=400&h=250&fit=crop',
       publishedAt: new Date('2024-01-15T06:30:00Z'),
       source: { id: 'cnn', name: 'CNN', bias: 'center' },
@@ -84,7 +86,7 @@ export default function Home() {
       id: '6',
       title: 'Space Exploration Reaches New Milestone',
       description: 'Latest space mission achieves unprecedented success, opening new possibilities for scientific discovery.',
-      url: '#',
+      url: 'https://www.npr.org/2024/01/15/space-exploration-milestone-achievement',
       imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=250&fit=crop',
       publishedAt: new Date('2024-01-15T05:15:00Z'),
       source: { id: 'npr', name: 'NPR', bias: 'center' },
@@ -262,14 +264,46 @@ export default function Home() {
     { id: 'gun-violence-archive', name: 'Gun Violence Archive', bias: 'left' }
   ]
 
+  // Load initial articles
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
+    const loadArticles = async () => {
+      setIsLoading(true)
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
       setArticles(mockArticles)
       setFilteredArticles(mockArticles)
+      setLastUpdated(new Date())
       setIsLoading(false)
-    }, 1000)
+    }
+    
+    loadArticles()
   }, [])
+
+  // Auto-refresh every 30 minutes
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      await refreshArticles()
+    }, 30 * 60 * 1000) // 30 minutes
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Refresh articles function
+  const refreshArticles = async () => {
+    setIsRefreshing(true)
+    try {
+      // In a real app, this would fetch from RSS feeds
+      // For now, we'll simulate with the same mock data
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      setArticles(mockArticles)
+      setLastUpdated(new Date())
+      analytics.pageView('refresh_articles')
+    } catch (error) {
+      console.error('Error refreshing articles:', error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   useEffect(() => {
     let filtered = articles
@@ -300,6 +334,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-midnight text-soft-white">
+      {isRefreshing && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-lavender text-charcoal text-center py-2 text-sm font-medium">
+          🔄 Refreshing news articles...
+        </div>
+      )}
       <Header 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -330,6 +369,9 @@ export default function Home() {
             <NewsGrid 
               articles={filteredArticles} 
               isLoading={isLoading}
+              lastUpdated={lastUpdated}
+              isRefreshing={isRefreshing}
+              onRefresh={refreshArticles}
             />
           </div>
         </div>
