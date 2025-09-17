@@ -117,14 +117,25 @@ export async function fetchRSSFeed(feedUrl: string): Promise<any[]> {
           const feed = await parser.parseString(content)
           console.log(`Successfully parsed feed with ${feed.items?.length || 0} items`)
           
-          return (feed.items || []).slice(0, 5).map((item: any) => ({
-            title: item.title || 'No title',
-            description: item.contentSnippet || item.description || 'No description',
-            link: item.link || '#',
-            pubDate: item.pubDate ? new Date(item.pubDate) : new Date(),
-            category: item.categories?.[0] || 'General',
-            imageUrl: item.enclosure?.url || item['media:content']?.['$']?.url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=250&fit=crop'
-          }))
+          return (feed.items || []).slice(0, 5).map((item: any) => {
+            // Clean the item data to remove problematic keys
+            const cleanItem = JSON.parse(JSON.stringify(item, (key, value) => {
+              // Remove keys that cause React errors
+              if (key === '_' || key === '$') {
+                return undefined
+              }
+              return value
+            }))
+            
+            return {
+              title: cleanItem.title || 'No title',
+              description: cleanItem.contentSnippet || cleanItem.description || 'No description',
+              link: cleanItem.link || '#',
+              pubDate: cleanItem.pubDate ? new Date(cleanItem.pubDate) : new Date(),
+              category: cleanItem.categories?.[0] || 'General',
+              imageUrl: cleanItem.enclosure?.url || cleanItem['media:content']?.url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=250&fit=crop'
+            }
+          })
         }
       } catch (proxyError) {
         console.error(`Proxy failed: ${proxyError}`)
