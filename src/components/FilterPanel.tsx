@@ -30,23 +30,23 @@ export default function FilterPanel({
 
   const getBiasColor = (bias: string) => {
     switch (bias) {
-      case 'left': return 'bg-blue-100 text-blue-800'
-      case 'center': return 'bg-green-100 text-green-800'
-      case 'right': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'left': return 'bg-neon-blue bg-opacity-20 text-neon-blue'
+      case 'center': return 'bg-mint bg-opacity-20 text-mint'
+      case 'right': return 'bg-coral bg-opacity-20 text-coral'
+      default: return 'bg-moonlight bg-opacity-20 text-moonlight'
     }
   }
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-sm p-6 h-fit">
+    <div className="w-full bg-charcoal rounded-lg shadow-lg border border-slate p-6 h-fit">
       <div className="flex items-center space-x-2 mb-6">
-        <Filter className="w-5 h-5 text-neutral-blue" />
-        <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+        <Filter className="w-5 h-5 text-lavender" />
+        <h2 className="text-lg font-semibold text-soft-white">Filters</h2>
       </div>
 
       {/* Categories */}
       <div className="mb-6">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">Categories</h3>
+        <h3 className="text-sm font-medium text-moonlight mb-3">Categories</h3>
         <div className="space-y-2">
           {categories.map((category) => (
             <button
@@ -54,8 +54,8 @@ export default function FilterPanel({
               onClick={() => onCategoryChange(category)}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                 selectedCategory === category
-                  ? 'bg-neutral-blue text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-lavender text-charcoal'
+                  : 'text-moonlight hover:bg-slate'
               }`}
             >
               {category === 'all' ? 'All Categories' : category}
@@ -66,7 +66,7 @@ export default function FilterPanel({
 
       {/* Sources */}
       <div className="mb-6">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">News Sources</h3>
+        <h3 className="text-sm font-medium text-moonlight mb-3">News Sources</h3>
         <div className="space-y-2">
           {sources.map((source) => (
             <div key={source.id} className="flex items-center space-x-3">
@@ -74,17 +74,17 @@ export default function FilterPanel({
                 onClick={() => handleSourceToggle(source.id)}
                 className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
                   selectedSources.includes(source.id)
-                    ? 'bg-neutral-blue border-neutral-blue'
-                    : 'border-gray-300'
+                    ? 'bg-lavender border-lavender'
+                    : 'border-slate'
                 }`}
               >
                 {selectedSources.includes(source.id) && (
-                  <CheckCircle className="w-3 h-3 text-white" />
+                  <CheckCircle className="w-3 h-3 text-charcoal" />
                 )}
               </button>
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-soft-white">
                     {source.name}
                   </span>
                   <span className={`px-2 py-1 rounded-full text-xs ${getBiasColor(source.bias)}`}>

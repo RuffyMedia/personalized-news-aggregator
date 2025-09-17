@@ -46,7 +46,7 @@ export default function PersonalizationPanel({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-4 py-2 bg-neutral-blue text-white rounded-lg hover:bg-neutral-purple transition-colors"
+        className="flex items-center space-x-2 px-4 py-2 bg-lavender text-charcoal rounded-lg hover:bg-mint hover:text-charcoal transition-colors"
       >
         <User className="w-4 h-4" />
         <span>Personalize Feed</span>
@@ -54,10 +54,10 @@ export default function PersonalizationPanel({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-lg shadow-lg border p-6 z-50">
+        <div className="absolute right-0 top-full mt-2 w-96 bg-charcoal rounded-lg shadow-lg border border-slate p-6 z-50">
           <div className="flex items-center space-x-2 mb-6">
-            <Star className="w-5 h-5 text-neutral-blue" />
-            <h2 className="text-lg font-semibold text-gray-900">Personalize Your Feed</h2>
+            <Star className="w-5 h-5 text-lavender" />
+            <h2 className="text-lg font-semibold text-soft-white">Personalize Your Feed</h2>
           </div>
 
           {/* Bias Balance */}

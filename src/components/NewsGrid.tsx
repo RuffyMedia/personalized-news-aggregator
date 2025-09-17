@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { ExternalLink, Clock, CheckCircle, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { NewsArticle } from '@/types/news'
 import BookmarkButton from './BookmarkButton'
+import ShareButton from './ShareButton'
 
 interface NewsGridProps {
   articles: NewsArticle[]
@@ -61,17 +62,17 @@ export default function NewsGrid({ articles, isLoading }: NewsGridProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-soft-white">
           Latest News ({articles.length} articles)
         </h2>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-moonlight">
           Updated {formatDistanceToNow(new Date())} ago
         </div>
       </div>
 
       <div className="space-y-4">
         {articles.map((article) => (
-          <article key={article.id} className="news-card p-6">
+          <article key={article.id} className="bg-charcoal rounded-lg shadow-lg border border-slate p-6 hover:bg-slate transition-colors">
             <div className="flex space-x-4">
               <div className="w-32 h-24 flex-shrink-0">
                 <img
@@ -83,11 +84,18 @@ export default function NewsGrid({ articles, isLoading }: NewsGridProps) {
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                  <h3 className="text-lg font-semibold text-soft-white line-clamp-2">
                     {article.title}
                   </h3>
                   <div className="flex items-center space-x-2 ml-4">
                     <BookmarkButton articleId={article.id} />
+                    <ShareButton 
+                      article={{
+                        title: article.title,
+                        description: article.description,
+                        url: article.url
+                      }}
+                    />
                     {article.factChecked && (
                       <div title="Fact-checked">
                         <CheckCircle className="w-4 h-4 text-green-600" />
@@ -97,16 +105,16 @@ export default function NewsGrid({ articles, isLoading }: NewsGridProps) {
                   </div>
                 </div>
                 
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                <p className="text-moonlight text-sm mb-3 line-clamp-2">
                   {article.description}
                 </p>
                 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span className="source-badge bg-gray-100 text-gray-700">
+                  <div className="flex items-center space-x-4 text-sm text-moonlight">
+                    <span className="source-badge bg-slate text-soft-white px-2 py-1 rounded">
                       {article.source.name}
                     </span>
-                    <span className="category-tag bg-neutral-blue text-white">
+                    <span className="category-tag bg-lavender text-charcoal px-2 py-1 rounded">
                       {article.category}
                     </span>
                     <div className="flex items-center space-x-1">
@@ -117,7 +125,7 @@ export default function NewsGrid({ articles, isLoading }: NewsGridProps) {
                   
                   <a
                     href={article.url}
-                    className="flex items-center space-x-1 text-neutral-blue hover:text-neutral-purple transition-colors"
+                    className="flex items-center space-x-1 text-lavender hover:text-mint transition-colors"
                   >
                     <span className="text-sm font-medium">Read more</span>
                     <ExternalLink className="w-3 h-3" />

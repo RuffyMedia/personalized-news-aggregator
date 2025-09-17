@@ -295,7 +295,7 @@ export default function Home() {
   }, [articles, selectedCategory, selectedSources, searchQuery])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-midnight text-soft-white">
       <Header 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
