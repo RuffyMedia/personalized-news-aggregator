@@ -272,36 +272,43 @@ export default function Home() {
       console.log('Loading articles...')
       
       try {
-        // Try to fetch real RSS feeds first
-        console.log('Attempting to fetch RSS feeds...')
+        // Temporarily use only mock data to ensure articles load
+        console.log('Using mock data for reliable loading...')
+        setArticles(mockArticles)
+        setFilteredArticles(mockArticles)
+        
+        // Try to fetch real RSS feeds in background
+        console.log('Attempting to fetch RSS feeds in background...')
         const rssArticles = await fetchAllFeeds()
         console.log(`RSS articles fetched: ${rssArticles.length}`)
         
         if (rssArticles.length > 0) {
-          // Convert RSS articles to NewsArticle format
-          const formattedArticles: NewsArticle[] = rssArticles.map((article, index) => ({
-            id: `rss-${index}-${Date.now()}`,
-            title: article.title,
-            description: article.description,
-            url: article.link,
-            imageUrl: article.imageUrl,
-            publishedAt: article.pubDate,
-            source: article.source,
-            category: article.category,
-            factChecked: false,
-            sentiment: 'neutral'
-          }))
+          console.log('RSS articles received:', rssArticles)
           
-          // Combine with some mock articles for variety
+          // Convert RSS articles to NewsArticle format
+          const formattedArticles: NewsArticle[] = rssArticles.map((article, index) => {
+            console.log(`Processing article ${index}:`, article)
+            return {
+              id: `rss-${index}-${Date.now()}`,
+              title: article.title || 'No title',
+              description: article.description || 'No description',
+              url: article.link || '#',
+              imageUrl: article.imageUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=250&fit=crop',
+              publishedAt: article.pubDate || new Date(),
+              source: article.source || { id: 'unknown', name: 'Unknown Source', bias: 'center' },
+              category: article.category || 'General',
+              factChecked: false,
+              sentiment: 'neutral' as const
+            }
+          })
+          
+          console.log('Formatted articles:', formattedArticles)
+          
+          // Replace with RSS articles if successful
           const allArticles = [...formattedArticles, ...mockArticles.slice(0, 3)]
           console.log(`Total articles loaded: ${allArticles.length}`)
           setArticles(allArticles)
           setFilteredArticles(allArticles)
-        } else {
-          // Fallback to mock data
-          console.log('No RSS articles, using mock data')
-          setArticles(mockArticles)
-          setFilteredArticles(mockArticles)
         }
       } catch (error) {
         console.error('Error loading articles:', error)
